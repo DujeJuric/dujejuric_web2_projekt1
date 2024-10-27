@@ -20,8 +20,12 @@ from datetime import datetime
 
 
 
+
+
 app = FastAPI()
 token_auth_scheme = HTTPBearer()
+
+backend_url = "https://dujejuric-web2-projekt1.onrender.com"
 
 app.add_middleware(
     CORSMiddleware,
@@ -75,7 +79,7 @@ async def create_ticket(response: Response, ticket: TicketBase, db: db_dependenc
     db.add(db_ticket)
     db.commit()
     db.refresh(db_ticket)
-    ticket_url = f"http://localhost:8000/ticket/{db_ticket.id}"
+    ticket_url = f"{backend_url}/{db_ticket.id}"
     qr = qrcode.make(ticket_url)
 
     img_io = io.BytesIO()
@@ -141,8 +145,8 @@ def login():
         "https://dev-2anuorhsrl8w0pl6.us.auth0.com/authorize"
         "?response_type=code"
         "&client_id=tYx7tPwwh87UPikur8s11We0K63tFmDt"
-        "&redirect_uri=http://localhost:8000/home"
-        "&audience=http://localhost:8000/"
+        f"&redirect_uri={backend_url}/home"
+        f"&audience=http://localhost:8000/"
         "&scope=offline_access openid profile email"
     )
 
@@ -155,7 +159,7 @@ def home(request: Request, db: db_dependency, code: str = None):
             "client_id": "tYx7tPwwh87UPikur8s11We0K63tFmDt",
             "client_secret": "AWIDzmJFZg_6WUzDivFFWbf7L65zdiyuxhjfUzJ5kBMUHFOVW0wdLyX53rvxdcHA",
             "code": code,
-            "redirect_uri": "http://localhost:8000/home"
+            "redirect_uri": f"{backend_url}/home"
         }
 
         headers = {
@@ -166,6 +170,7 @@ def home(request: Request, db: db_dependency, code: str = None):
 
         if response.status_code == 200:
             token_data = response.json()
+            print(token_data["access_token"])
             request.session["access_token"] = token_data["access_token"]
             return RedirectResponse(f"/home")
         else:
@@ -220,7 +225,7 @@ async def logout(request: Request):
     request.session.pop("access_token", None)  
     return RedirectResponse(
         "https://dev-2anuorhsrl8w0pl6.us.auth0.com/v2/logout"
-        f"?returnTo=http://localhost:8000/home"
+        f"?returnTo={backend_url}/home"
         "&client_id=tYx7tPwwh87UPikur8s11We0K63tFmDt"
     )
 
