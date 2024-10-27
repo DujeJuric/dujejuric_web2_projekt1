@@ -79,7 +79,7 @@ async def create_ticket(response: Response, ticket: TicketBase, db: db_dependenc
     db.add(db_ticket)
     db.commit()
     db.refresh(db_ticket)
-    ticket_url = f"{backend_url}/{db_ticket.id}"
+    ticket_url = f"{backend_url}/ticket/{db_ticket.id}"
     qr = qrcode.make(ticket_url)
 
     img_io = io.BytesIO()
@@ -170,7 +170,6 @@ def home(request: Request, db: db_dependency, code: str = None):
 
         if response.status_code == 200:
             token_data = response.json()
-            print(token_data["access_token"])
             request.session["access_token"] = token_data["access_token"]
             return RedirectResponse(f"/home")
         else:
